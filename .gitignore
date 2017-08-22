@@ -1,0 +1,4 @@
+*.o
+*.swp
+parallel_neural_training
+tags
