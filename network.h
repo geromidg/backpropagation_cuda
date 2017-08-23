@@ -10,9 +10,9 @@ class Network
     virtual ~Network(void);
 
     float* getNetworkOutput(void);  // FIXME: Make return value const
-    void propagateInputValues(const float *input);
 
-    void trainNetwork(const float *expected_output, const float *input);
+    void propagate(const float *input);
+    void train(const float *expected_output, const float *input);
         
   private:
     int layer_num_;

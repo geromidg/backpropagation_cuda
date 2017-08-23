@@ -8,9 +8,9 @@ class Neuron
     virtual ~Neuron(void);
 
     float getOutput(void);
-    void compute(const float* inputs);
 
-    float fitWeights(const float* input_values, const float& expected_output);
+    void process(const float* inputs);
+    float fit(const float* input, const float& expected_output);
 
   private:
     float activationFunction(const float& weighted_sum);
@@ -22,7 +22,6 @@ class Neuron
     float output_;
 
     float* deltas_;
-
     float gamma_;  // learning rate
     float alpha_;  // learning momentum
 };

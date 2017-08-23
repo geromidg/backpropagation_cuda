@@ -37,7 +37,7 @@ float Neuron::getOutput(void)
   return output_;
 }
 
-void Neuron::compute(const float* inputs)
+void Neuron::process(const float* inputs)
 {
   float weighted_sum = 0;
 
@@ -49,7 +49,7 @@ void Neuron::compute(const float* inputs)
   output_ = activationFunction(weighted_sum);
 }
 
-float Neuron::fitWeights(const float* input_values, const float& expected_output)
+float Neuron::fit(const float* input, const float& expected_output)
 {
   float error_sum = 0;
   float error = output_ * (1 - output_) * (expected_output - output_);
@@ -59,7 +59,7 @@ float Neuron::fitWeights(const float* input_values, const float& expected_output
   for (int i = 0; i < input_num_; i++)
   {
     deltas_[i] *= alpha_;
-    deltas_[i] += gamma_ * error * input_values[i];
+    deltas_[i] += gamma_ * error * input[i];
 
     weights_[i] += deltas_[i];
 

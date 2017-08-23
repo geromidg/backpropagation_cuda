@@ -27,20 +27,20 @@ float* Network::getNetworkOutput(void)
   return layers_[layer_num_ - 1]->getLayerOutput();
 }
 
-void Network::propagateInputValues(const float *input)
+void Network::propagate(const float *input)
 {
-  layers_[0]->propagateInput(input);
+  layers_[0]->processNeurons(input);
 
   for (int i = 1; i < layer_num_; i++)
-    layers_[i]->propagateInput(layers_[i - 1]->getLayerOutput());
+    layers_[i]->processNeurons(layers_[i - 1]->getLayerOutput());
 }
 
-void Network::trainNetwork(const float *expected_output, const float *input)
+void Network::train(const float *expected_output, const float *input)
 {
-  propagateInputValues(input);
+  propagate(input);
 
-  float layer_error = layers_[layer_num_ - 1]->trainLayer(input, expected_output);
-  
+  float layer_error = layers_[layer_num_ - 1]->fitNeurons(input, expected_output);
+
   for (int i = (layer_num_ - 2); i >= 0; i--)
-    layer_error = layers_[i]->trainLayer(input, layer_error);
+    layer_error = layers_[i]->fitNeurons(input, layer_error);
 }

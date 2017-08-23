@@ -11,10 +11,10 @@ class Layer
     virtual ~Layer(void);
 
     float* getLayerOutput(void);  // FIXME: Make return value const
-    void propagateInput(const float* input_values);
 
-    float trainLayer(const float* input_values, const float& next_layer_error);
-    float trainLayer(const float* input_values, const float* expected_output);
+    void processNeurons(const float* input);
+    float fitNeurons(const float* input, const float& next_layer_error);
+    float fitNeurons(const float* input, const float* expected_output);
 
   private:
     int neuron_num_;

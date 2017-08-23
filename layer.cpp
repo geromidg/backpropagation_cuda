@@ -32,28 +32,28 @@ float* Layer::getLayerOutput(void)
   return output;
 }
 
-void Layer::propagateInput(const float* input_values)
+void Layer::processNeurons(const float* input)
 {
   for (int i = 0; i < neuron_num_; i++)
-    neurons_[i]->compute(input_values);
+    neurons_[i]->process(input);
 }
 
-float Layer::trainLayer(const float* input_values, const float& next_layer_error)
+float Layer::fitNeurons(const float* input, const float& next_layer_error)
 {
-  float expected_output_values[neuron_num_];
+  float expected_output[neuron_num_];
 
   for (int i = 0; i < neuron_num_; i++)
-    expected_output_values[i] = next_layer_error + neurons_[i]->getOutput();
+    expected_output[i] = next_layer_error + neurons_[i]->getOutput();
 
-  return trainLayer(input_values, expected_output_values);
+  return fitNeurons(input, expected_output);
 }
 
-float Layer::trainLayer(const float* input_values, const float* expected_output_values)
+float Layer::fitNeurons(const float* input, const float* expected_output)
 {
   float error_sum = 0;
 
   for (int i = 0; i < neuron_num_; i++)
-    error_sum += neurons_[i]->fitWeights(input_values, expected_output_values[i]);
+    error_sum += neurons_[i]->fit(input, expected_output[i]);
 
   return error_sum;
 }
