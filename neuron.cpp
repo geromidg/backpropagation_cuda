@@ -3,9 +3,11 @@
 
 #include "neuron.h"
 
-Neuron::Neuron(const int& input_num):
-  input_num_(input_num),
-  output(0)
+Neuron::Neuron(const int& input_num, const float& gamma, const float& alpha):
+  input_num(input_num),
+  output(0),
+  gamma(gamma),
+  alpha(alpha)
 {
   weights = new float[input_num];
 
@@ -26,19 +28,37 @@ Neuron::~Neuron(void)
     delete[] deltas;
 }
 
-void Neuron::calculateOutput(const float* inputs)
+void Neuron::computeOutput(const float* inputs)
 {
-  float sum=0;
+  float weighted_sum = 0;
 
-  for (int i = 0; i < input_num_; i++)
-    sum += weights[i] * inputs[i];
+  for (int i = 0; i < input_num; i++)
+    weighted_sum += weights[i] * inputs[i];
 
-  sum += bias;
+  weighted_sum += bias;
 
-  output = activationFunction(sum);
+  output = activationFunction(weighted_sum);
 }
 
 float Neuron::activationFunction(const float& weighted_sum)
 {
   return (1 / (1 + exp(-weighted_sum)));  // sigmoid function
+}
+
+float Neuron::fitWeights(const float* input_values, const float& expected_output)
+{
+  float error_sum = 0;
+  float error = output * (1 - output) * (expected_output - output);
+
+  bias += gamma * error;
+
+  for (int i = 0; i < input_num; i++)
+  {
+    deltas[i] = gamma * error * input_values[i] + alpha * deltas[i];
+    weights[i] += deltas[i];
+
+    error_sum += error * weights[i];
+  }
+
+  return error_sum;
 }

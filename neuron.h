@@ -4,10 +4,11 @@
 class Neuron
 {
   public:
-    Neuron(const int& input_num);
+    Neuron(const int& input_num, const float& gamma, const float& alpha);
     virtual ~Neuron(void);
 
-    void calculateOutput(const float* inputs);
+    void computeOutput(const float* inputs);
+    float fitWeights(const float* input_values, const float& expected_output);
 
     float* weights;
     float bias;
@@ -15,10 +16,13 @@ class Neuron
 
     float* deltas;
 
+    float gamma;  // learning rate
+    float alpha;  // learning momentum
+
   private:
     float activationFunction(const float& weighted_sum);
 
-    int input_num_;
+    int input_num;
 
   private:
 

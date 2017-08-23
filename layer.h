@@ -11,16 +11,13 @@ class Layer
     virtual ~Layer(void);
 
     void calculateNeuronOutputs();
-    float computeNewWeights(const float& next_layer_error);
-    float computeNewWeights(const float* desiredoutput);
+    float trainLayer(const float& next_layer_error);
+    float trainLayer(const float* expected_output);
 
     int input_num;
     int neuron_num;
 
     Neuron** neurons;
-
-    float gamma;  // learning rate
-    float alpha;  // learning momentum
 
     float* layerinput;  // FIXME!
 };

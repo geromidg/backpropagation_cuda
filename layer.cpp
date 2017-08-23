@@ -2,16 +2,14 @@
 
 #include "layer.h"
 
-Layer::Layer(const int& input_num,const int& neuron_num, const float& gamma, const float& alpha):
+Layer::Layer(const int& input_num, const int& neuron_num, const float& gamma, const float& alpha):
   input_num(input_num),
-  neuron_num(neuron_num),
-  gamma(gamma),
-  alpha(alpha)
+  neuron_num(neuron_num)
 {
   neurons = new Neuron*[neuron_num];
 
   for (int i = 0; i < neuron_num;i++)
-    neurons[i] = new Neuron(input_num);
+    neurons[i] = new Neuron(input_num, gamma, alpha);
 
   layerinput = new float[input_num];
 }
@@ -33,54 +31,25 @@ Layer::~Layer(void)
 void Layer::calculateNeuronOutputs()
 {
   for (int i = 0; i < neuron_num; i++)
-    neurons[i]->calculateOutput(layerinput);
+    neurons[i]->computeOutput(layerinput);
 }
 
-// FIXME: rename
-float Layer::computeNewWeights(const float& next_layer_error)
+float Layer::trainLayer(const float& next_layer_error)
 {
-  float output, error;
-  float error_sum;
+  float expected_output_values[neuron_num];
 
   for (int i = 0; i < neuron_num; i++)
-  {
-    output = neurons[i]->output;
-    error = output * (1 - output) * next_layer_error;
+    expected_output_values[i] = next_layer_error + neurons[i]->output;
 
-    neurons[i]->bias += gamma * error;
-
-    for (int j = 0; j < input_num; j++)
-    {
-      neurons[i]->deltas[j] = gamma * error * layerinput[j] + neurons[i]->deltas[j] * alpha;
-      neurons[i]->weights[j] += neurons[i]->deltas[j];
-
-      error_sum += neurons[i]->weights[j] * error;
-    }
-  }
-
-  return error_sum;
+  return trainLayer(expected_output_values);
 }
 
-float Layer::computeNewWeights(const float* desiredoutput)
+float Layer::trainLayer(const float* expected_output_values)
 {
-  float output, error;
-  float error_sum;
+  float error_sum = 0;
 
   for (int i = 0; i < neuron_num; i++)
-  {
-    output = neurons[i]->output;
-    error = output * (1 - output) * (desiredoutput[i] - output);
-
-    neurons[i]->bias += gamma * error;
-
-    for (int j = 0; j < input_num; j++)
-    {
-      neurons[i]->deltas[j] = gamma * error * layerinput[j] + neurons[i]->deltas[j] * alpha;
-      neurons[i]->weights[j] += neurons[i]->deltas[j];
-
-      error_sum += neurons[i]->weights[j] * error;
-    }
-  }
+    error_sum += neurons[i]->fitWeights(layerinput, expected_output_values[i]);
 
   return error_sum;
 }
