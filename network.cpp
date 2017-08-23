@@ -35,7 +35,7 @@ void Network::propagate(const float *input)
     layers_[i]->processNeurons(layers_[i - 1]->getLayerOutput());
 }
 
-void Network::train(const float *expected_output, const float *input)
+void Network::train(const float *input, const float *expected_output)
 {
   propagate(input);
 

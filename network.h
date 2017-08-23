@@ -12,7 +12,7 @@ class Network
     float* getNetworkOutput(void);  // FIXME: Make return value const
 
     void propagate(const float *input);
-    void train(const float *expected_output, const float *input);
+    void train(const float *input, const float *expected_output);
         
   private:
     int layer_num_;
