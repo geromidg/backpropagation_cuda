@@ -12,13 +12,14 @@ class Layer
 
     float* getLayerOutput(void);  // FIXME: Make return value const
     void propagateInput(const float* input_values);
+
     float trainLayer(const float* input_values, const float& next_layer_error);
     float trainLayer(const float* input_values, const float* expected_output);
 
-    int input_num;
-    int neuron_num;
+  private:
+    int neuron_num_;
 
-    Neuron** neurons;
+    Neuron** neurons_;
 };
 
 #endif  // LAYER_H
