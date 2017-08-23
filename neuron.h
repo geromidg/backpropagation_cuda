@@ -8,7 +8,8 @@ class Neuron
     virtual ~Neuron(void);
 
     float getOutput(void);
-    void computeOutput(const float* inputs);
+    void compute(const float* inputs);
+
     float fitWeights(const float* input_values, const float& expected_output);
 
   private:

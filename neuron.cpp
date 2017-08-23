@@ -37,7 +37,7 @@ float Neuron::getOutput(void)
   return output_;
 }
 
-void Neuron::computeOutput(const float* inputs)
+void Neuron::compute(const float* inputs)
 {
   float weighted_sum = 0;
 
