@@ -4,40 +4,27 @@
 #include "neuron.h"
 
 Neuron::Neuron(const int& input_num, const float& gamma, const float& alpha):
-  input_num(input_num),
-  output(0),
-  gamma(gamma),
-  alpha(alpha)
+  input_num_(input_num),
+  output_(0),
+  gamma_(gamma),
+  alpha_(alpha)
 {
-  weights = new float[input_num];
+  weights_ = new float[input_num_];
+  deltas_ = new float[input_num_]();
 
-  for (int i = 0; i < input_num; i++)
-    weights[i] = float(rand()) / float(RAND_MAX);
+  for (int i = 0; i < input_num_; i++)
+    weights_[i] = float(rand()) / float(RAND_MAX);
 
-  bias = float(rand()) / float(RAND_MAX);
-
-  deltas = new float[input_num]();
+  bias_ = float(rand()) / float(RAND_MAX);
 }
 
 Neuron::~Neuron(void)
 {
-  if (weights)
-    delete[] weights;
+  if (weights_)
+    delete[] weights_;
   
-  if (deltas)
-    delete[] deltas;
-}
-
-void Neuron::computeOutput(const float* inputs)
-{
-  float weighted_sum = 0;
-
-  for (int i = 0; i < input_num; i++)
-    weighted_sum += weights[i] * inputs[i];
-
-  weighted_sum += bias;
-
-  output = activationFunction(weighted_sum);
+  if (deltas_)
+    delete[] deltas_;
 }
 
 float Neuron::activationFunction(const float& weighted_sum)
@@ -45,19 +32,38 @@ float Neuron::activationFunction(const float& weighted_sum)
   return (1 / (1 + exp(-weighted_sum)));  // sigmoid function
 }
 
+float Neuron::getOutput(void)
+{
+  return output_;
+}
+
+void Neuron::computeOutput(const float* inputs)
+{
+  float weighted_sum = 0;
+
+  for (int i = 0; i < input_num_; i++)
+    weighted_sum += weights_[i] * inputs[i];
+
+  weighted_sum += bias_;
+
+  output_ = activationFunction(weighted_sum);
+}
+
 float Neuron::fitWeights(const float* input_values, const float& expected_output)
 {
   float error_sum = 0;
-  float error = output * (1 - output) * (expected_output - output);
+  float error = output_ * (1 - output_) * (expected_output - output_);
 
-  bias += gamma * error;
+  bias_ += gamma_ * error;
 
-  for (int i = 0; i < input_num; i++)
+  for (int i = 0; i < input_num_; i++)
   {
-    deltas[i] = gamma * error * input_values[i] + alpha * deltas[i];
-    weights[i] += deltas[i];
+    deltas_[i] *= alpha_;
+    deltas_[i] += gamma_ * error * input_values[i];
 
-    error_sum += error * weights[i];
+    weights_[i] += deltas_[i];
+
+    error_sum += error * weights_[i];
   }
 
   return error_sum;

@@ -39,7 +39,7 @@ float Layer::trainLayer(const float& next_layer_error)
   float expected_output_values[neuron_num];
 
   for (int i = 0; i < neuron_num; i++)
-    expected_output_values[i] = next_layer_error + neurons[i]->output;
+    expected_output_values[i] = next_layer_error + neurons[i]->getOutput();
 
   return trainLayer(expected_output_values);
 }
