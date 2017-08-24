@@ -2,13 +2,16 @@
 
 #include "network.h"
 
-Network::Network(const int& total_layer_num, const int* configuration, const float& gamma, const float& alpha):
+Network::Network(const int& total_layer_num, const int* configuration,
+      const float& gamma, const float& alpha,
+      const int& thread_num):
   layer_num_(total_layer_num - 1)
 {
   layers_ = new Layer*[layer_num_];
 
   for (int i = 0; i < layer_num_; i++)
-    layers_[i] = new Layer(configuration[i], configuration[i + 1], gamma, alpha);
+    layers_[i] = new Layer(configuration[i], configuration[i + 1],
+      gamma, alpha, thread_num);
 }
 
 Network::~Network(void)

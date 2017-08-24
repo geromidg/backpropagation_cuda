@@ -26,7 +26,8 @@ int main(int argc, char** argv)
 
   TestNetwork test_network = TestNetwork(NETWORK_LAYER_NUM, network_configuration,
     NETWORK_EPOCHS, NETWORK_GAMMA, NETWORK_ALPHA,
-    DATASET_SIZE, dataset_input, dataset_output);
+    DATASET_SIZE, dataset_input, dataset_output,
+    THREAD_NUM);
   test_network.run();
 
   return 0;

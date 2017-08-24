@@ -2,13 +2,22 @@
 
 #include "layer.h"
 
-Layer::Layer(const int& input_num, const int& neuron_num, const float& gamma, const float& alpha):
-  neuron_num_(neuron_num)
+Layer::Layer(const int& input_num, const int& neuron_num,
+    const float& gamma, const float& alpha,
+    const int& thread_num):
+  neuron_num_(neuron_num),
+  thread_num_(thread_num)
 {
   neurons_ = new Neuron*[neuron_num_];
 
   for (int i = 0; i < neuron_num_; i++)
     neurons_[i] = new Neuron(input_num, gamma, alpha);
+
+  if (neuron_num_ < thread_num_)
+    thread_num_ = neuron_num_;
+
+  thread_num_--;  // Account for master thread
+  threads_ = new std::thread[thread_num_];
 }
 
 Layer::~Layer(void)
@@ -20,6 +29,9 @@ Layer::~Layer(void)
 
     delete[] neurons_;
   }
+
+  if (threads_)
+    delete [] threads_;
 }
 
 float* Layer::getLayerOutput(void)
@@ -50,10 +62,33 @@ float Layer::fitNeurons(const float* input, const float& next_layer_error)
 
 float Layer::fitNeurons(const float* input, const float* expected_output)
 {
+  float chunk = (float)neuron_num_ / (thread_num_ + 1);
+
+  shared_error_sum_ = 0;
+
+  for (int i = 0; i < thread_num_; i++)
+    threads_[i] = std::thread(&Layer::fitNeuronsThreaded, this,
+      ((i + 1) * chunk), ((i + 2) * chunk), input, expected_output);
+
+  // Compute a chunk in the master thread
+  fitNeuronsThreaded(0, chunk, input, expected_output);
+
+  for (int i = 0; i < thread_num_; i++)
+    threads_[i].join();
+
+  return shared_error_sum_;
+}
+
+void Layer::fitNeuronsThreaded(const int& start_block, const int& end_block,
+  const float* input, const float* expected_output)
+{
   float error_sum = 0;
 
-  for (int i = 0; i < neuron_num_; i++)
+  for (int i = start_block; i < end_block; i++)
     error_sum += neurons_[i]->fit(input, expected_output[i]);
 
-  return error_sum;
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    shared_error_sum_ += error_sum;
+  }
 }

@@ -6,7 +6,9 @@
 class Network
 {
   public:
-    Network(const int& total_layer_num, const int* configuration, const float& gamma, const float& alpha);
+    Network(const int& total_layer_num, const int* configuration,
+      const float& gamma, const float& alpha,
+      const int& thread_num);
     virtual ~Network(void);
 
     float* getNetworkOutput(void);  // FIXME: Make return value const

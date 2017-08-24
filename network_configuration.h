@@ -8,4 +8,6 @@
 #define NETWORK_GAMMA (0.2)
 #define NETWORK_ALPHA (0.1)
 
+#define THREAD_NUM (8)
+
 #endif  // NETWORK_CONFIGURATION_H

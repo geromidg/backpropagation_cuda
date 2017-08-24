@@ -1,13 +1,18 @@
 #ifndef LAYER_H
 #define LAYER_H
 
+#include <thread>
+#include <mutex>
+
 #include "neuron.h"
 
 class Layer
 {
   public:
     Layer(){};
-    Layer(const int& input_num, const int& neuron_num, const float& gamma, const float& alpha);
+    Layer(const int& input_num, const int& neuron_num,
+      const float& gamma, const float& alpha,
+      const int& thread_num);
     virtual ~Layer(void);
 
     float* getLayerOutput(void);  // FIXME: Make return value const
@@ -17,9 +22,16 @@ class Layer
     float fitNeurons(const float* input, const float* expected_output);
 
   private:
-    int neuron_num_;
+    void fitNeuronsThreaded(const int& start_block, const int& end_block,
+      const float* input, const float* expected_output);
 
+    int neuron_num_;
     Neuron** neurons_;
+
+    int thread_num_;
+    std::thread* threads_;
+    std::mutex mutex_;
+    float shared_error_sum_;
 };
 
 #endif  // LAYER_H
