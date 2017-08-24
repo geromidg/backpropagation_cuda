@@ -1,8 +1,8 @@
 TARGET = parallel_neural_training
 
-LIBS = -pthread -lm
 CC = g++
-CFLAGS = -g -Wall -O3
+CFLAGS = -std=c++11 -O3 -Wall
+LIBS = -lm -lpthread
 
 .PHONY: default all clean
 
@@ -12,7 +12,7 @@ all: default
 OBJECTS = $(patsubst %.cpp, %.o, $(wildcard *.cpp))
 HEADERS = $(wildcard *.h)
 
-%.o: %.c $(HEADERS)
+%.o: %.cpp $(HEADERS)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 .PRECIOUS: $(TARGET) $(OBJECTS)
