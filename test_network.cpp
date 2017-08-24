@@ -9,13 +9,15 @@
 TestNetwork::TestNetwork(const int& network_layer_num, 
     const int* network_configuration, const int& network_epochs,
     const float& network_gamma, const float& network_alpha,
-    const int& dataset_size, float** dataset_input, float** dataset_output):
+    const int& dataset_size, float** dataset_input, float** dataset_output,
+    const int& thread_num):
   network_epochs_(network_epochs),
   dataset_size_(dataset_size),
   dataset_input_(dataset_input),
   dataset_output_(dataset_output)
 {
-  network_ = new Network(network_layer_num, network_configuration, network_gamma, network_alpha);
+  network_ = new Network(network_layer_num, network_configuration,
+    network_gamma, network_alpha, thread_num);
 }
 
 TestNetwork::~TestNetwork(void)

@@ -9,7 +9,8 @@ class TestNetwork
     TestNetwork(const int& network_layer_num,
       const int* network_configuration, const int& network_epochs,
       const float& network_gamma, const float& network_alpha,
-      const int& dataset_size, float** dataset_input, float** dataset_output);
+      const int& dataset_size, float** dataset_input, float** dataset_output,
+      const int& thread_num);
     virtual ~TestNetwork(void);
 
     void run(void);

@@ -2,20 +2,21 @@
 
 #include "layer.h"
 
-Layer::Layer(const int& input_num, const int& neuron_num, const float& gamma, const float& alpha):
-  neuron_num_(neuron_num)
+Layer::Layer(const int& input_num, const int& neuron_num,
+    const float& gamma, const float& alpha,
+    const int& thread_num):
+  neuron_num_(neuron_num),
+  thread_num_(thread_num)
 {
   neurons_ = new Neuron*[neuron_num_];
 
   for (int i = 0; i < neuron_num_; i++)
     neurons_[i] = new Neuron(input_num, gamma, alpha);
 
-  threads_num_ = 8;  // FIXME: Pass as an arg
+  if (neuron_num_ < thread_num_)
+    thread_num_ = neuron_num_;
 
-  if (threads_num_ > neuron_num_)
-    threads_num_ = neuron_num_;
-
-  threads_ = new std::thread[threads_num_];
+  threads_ = new std::thread[thread_num_];
 }
 
 Layer::~Layer(void)
@@ -63,16 +64,16 @@ float Layer::fitNeurons(const float* input, const float* expected_output)
 {
   shared_error_sum_ = 0;
 
-  for (int i = 0; i < threads_num_; ++i)
+  for (int i = 0; i < thread_num_; ++i)
   {
-    int start_block = (i * neuron_num_) / threads_num_;
-    int end_block = ((i + 1) * neuron_num_) / threads_num_;
+    int start_block = (i * neuron_num_) / thread_num_;
+    int end_block = ((i + 1) * neuron_num_) / thread_num_;
 
     threads_[i] = std::thread(&Layer::fitNeuronsThreaded, this,
       start_block, end_block, input, expected_output);
   }
 
-  for (int i = 0; i < threads_num_; ++i)
+  for (int i = 0; i < thread_num_; ++i)
     threads_[i].join();
 
   return shared_error_sum_;

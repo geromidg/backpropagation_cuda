@@ -10,7 +10,9 @@ class Layer
 {
   public:
     Layer(){};
-    Layer(const int& input_num, const int& neuron_num, const float& gamma, const float& alpha);
+    Layer(const int& input_num, const int& neuron_num,
+      const float& gamma, const float& alpha,
+      const int& thread_num);
     virtual ~Layer(void);
 
     float* getLayerOutput(void);  // FIXME: Make return value const
@@ -26,7 +28,7 @@ class Layer
     int neuron_num_;
     Neuron** neurons_;
 
-    int threads_num_;
+    int thread_num_;
     std::thread* threads_;
     std::mutex mutex_;
     float shared_error_sum_;
