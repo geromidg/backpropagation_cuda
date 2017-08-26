@@ -2,6 +2,12 @@
 
 #include "training.cuh"
 
+static void updateNeuronErrorsLaunch(Layer* layer, const int& start_chunk, const int& end_chunk,
+  const float* expected_output);
+static void updateNeuronDeltasLaunch(Layer* layer, const int& start_chunk, const int& end_chunk,
+  const float* input);
+static float sumAllErrors(const int& start_chunk, const int& end_chunk, Neuron** neurons);
+
 __global__ void updateNeuronErrors(const int neuron_num, const float* expected_output,
   const float* outputs, const float* gammas, float* errors, float* biases)
 {
@@ -36,16 +42,14 @@ __global__ void updateNeuronDeltas(const int input_num, float* weights, float* d
   }
 }
 
-void parallelTraining(Layer* layer, const int& start_chunk, const int& end_chunk,
-  const float* input, const float* expected_output)
+void updateNeuronErrorsLaunch(Layer* layer, const int& start_chunk, const int& end_chunk,
+  const float* expected_output)
 {
-  int blockSize = 0;
-  int minGridSize = 0;
   int gridSize;
-
-  // --------------------------------------------------------------------------
-
+  int minGridSize = 0;
+  int blockSize = 0;
   int neuron_num = end_chunk - start_chunk;
+
   float* expected_output_d;
   float* outputs_d;
   float* errors_d;
@@ -85,10 +89,16 @@ void parallelTraining(Layer* layer, const int& start_chunk, const int& end_chunk
   cudaFree(errors_d);
   cudaFree(biases_d);
   cudaFree(expected_output_d);
+}
 
-  // --------------------------------------------------------------------------
-
+void updateNeuronDeltasLaunch(Layer* layer, const int& start_chunk, const int& end_chunk,
+  const float* input)
+{
+  int gridSize;
+  int minGridSize = 0;
+  int blockSize = 0;
   int input_num = layer->neurons_[0]->input_num_;
+
   float* input_d;
   float* weights_d;
   float* deltas_d;
@@ -118,25 +128,35 @@ void parallelTraining(Layer* layer, const int& start_chunk, const int& end_chunk
   }
 
   cudaFree(input_d);
+}
 
-  cudaStreamSynchronize(0);
+// TODO: Use OMP to sum
+float sumAllErrors(const int& start_chunk, const int& end_chunk, Neuron** neurons)
+{
+  int input_num = neurons[0]->input_num_;
+  float sum;
 
-  // --------------------------------------------------------------------------
-
-  float error_sum = 0;
-
-  // TODO: Use OMP for this sum
-  // TODO: Extract to function
   for (int i = start_chunk; i < end_chunk; i++)
     for (int j = 0; j < input_num; j++)
-      error_sum += layer->neurons_[i]->error_ * layer->neurons_[i]->weights_[j];
+      sum += neurons[i]->error_ * neurons[i]->weights_[j];
 
-  // --------------------------------------------------------------------------
+  return sum;
+}
+
+void parallelTraining(Layer* layer, const int& start_chunk, const int& end_chunk,
+  const float* input, const float* expected_output)
+{
+  float error_sum;
+
+  updateNeuronErrorsLaunch(layer, start_chunk, end_chunk, expected_output);
+  updateNeuronDeltasLaunch(layer, start_chunk, end_chunk, input);
+
+  cudaStreamSynchronize(0);  // XXX: cudaDeviceSynchronize() ?
+
+  error_sum = sumAllErrors(start_chunk, end_chunk, layer->neurons_);
 
   {
     std::lock_guard<std::mutex> lock(layer->mutex_);
     layer->shared_error_sum_ += error_sum;
   }
-
-  // --------------------------------------------------------------------------
 }
