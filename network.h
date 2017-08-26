@@ -11,7 +11,7 @@ class Network
       const int& thread_num);
     virtual ~Network(void);
 
-    float* getNetworkOutput(void);  // FIXME: Make return value const
+    float* getNetworkOutput(void);
 
     void propagate(const float *input);
     void train(const float *input, const float *expected_output);

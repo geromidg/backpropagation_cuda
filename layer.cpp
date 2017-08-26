@@ -38,7 +38,7 @@ Layer::~Layer(void)
 
 float* Layer::getLayerOutput(void)
 {
-  float* output = new float[neuron_num_];  // FIXME: Use smart pointer
+  float* output = new float[neuron_num_];
 
   for (int i = 0; i < neuron_num_; i++)
     output[i] = neurons_[i]->getOutput();

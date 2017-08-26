@@ -135,7 +135,6 @@ void updateNeuronDeltasLaunch(Layer* layer, const int& start_chunk, const int& e
   cudaFree(input_d);
 }
 
-// TODO: Use OMP to sum
 float sumAllErrors(const int& thread_num, const int& start_chunk,
   const int& end_chunk, Neuron** neurons)
 {

@@ -15,7 +15,7 @@ class Layer
       const int& thread_num);
     virtual ~Layer(void);
 
-    float* getLayerOutput(void);  // FIXME: Make return value const
+    float* getLayerOutput(void);
 
     void processNeurons(const float* input);
     float trainLayer(const float* input, const float& next_layer_error);

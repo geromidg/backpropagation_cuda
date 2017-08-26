@@ -35,7 +35,7 @@ void TestNetwork::train(void)
   toc("\nTraining time: %.3f s\n");
 }
 
-// FIXME: Currently works for output size of 1
+// TODO: Add support for datasets with more than 1 outputs
 void TestNetwork::validate(void)
 {
   float accuracy = 0;
