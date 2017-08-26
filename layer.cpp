@@ -1,5 +1,7 @@
 #include <stdlib.h>
 
+#include "training.cuh"
+
 #include "layer.h"
 
 Layer::Layer(const int& input_num, const int& neuron_num,
@@ -50,45 +52,31 @@ void Layer::processNeurons(const float* input)
     neurons_[i]->process(input);
 }
 
-float Layer::fitNeurons(const float* input, const float& next_layer_error)
+float Layer::trainLayer(const float* input, const float& next_layer_error)
 {
   float expected_output[neuron_num_];
 
   for (int i = 0; i < neuron_num_; i++)
     expected_output[i] = next_layer_error + neurons_[i]->getOutput();
 
-  return fitNeurons(input, expected_output);
+  return trainLayer(input, expected_output);
 }
 
-float Layer::fitNeurons(const float* input, const float* expected_output)
+float Layer::trainLayer(const float* input, const float* expected_output)
 {
   float chunk = (float)neuron_num_ / (thread_num_ + 1);
 
   shared_error_sum_ = 0;
 
   for (int i = 0; i < thread_num_; i++)
-    threads_[i] = std::thread(&Layer::fitNeuronsThreaded, this,
+    threads_[i] = std::thread(parallelTraining, this,
       ((i + 1) * chunk), ((i + 2) * chunk), input, expected_output);
 
-  // Compute a chunk in the master thread
-  fitNeuronsThreaded(0, chunk, input, expected_output);
+  // Use master thread in the computations as well
+  parallelTraining(this, 0, chunk, input, expected_output);
 
   for (int i = 0; i < thread_num_; i++)
     threads_[i].join();
 
   return shared_error_sum_;
-}
-
-void Layer::fitNeuronsThreaded(const int& start_block, const int& end_block,
-  const float* input, const float* expected_output)
-{
-  float error_sum = 0;
-
-  for (int i = start_block; i < end_block; i++)
-    error_sum += neurons_[i]->fit(input, expected_output[i]);
-
-  {
-    std::lock_guard<std::mutex> lock(mutex_);
-    shared_error_sum_ += error_sum;
-  }
 }

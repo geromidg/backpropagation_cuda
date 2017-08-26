@@ -42,8 +42,8 @@ void Network::train(const float *input, const float *expected_output)
 {
   propagate(input);
 
-  float layer_error = layers_[layer_num_ - 1]->fitNeurons(input, expected_output);
+  float layer_error = layers_[layer_num_ - 1]->trainLayer(input, expected_output);
 
   for (int i = (layer_num_ - 2); i >= 0; i--)
-    layer_error = layers_[i]->fitNeurons(input, layer_error);
+    layer_error = layers_[i]->trainLayer(input, layer_error);
 }
