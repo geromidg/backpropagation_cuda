@@ -13,9 +13,9 @@ Neuron::Neuron(const int& input_num, const float& gamma, const float& alpha):
   deltas_ = new float[input_num_]();
 
   for (int i = 0; i < input_num_; i++)
-    weights_[i] = float(rand()) / float(RAND_MAX);
+    weights_[i] = 0;
 
-  bias_ = float(rand()) / float(RAND_MAX);
+  bias_ = 0;
 }
 
 Neuron::~Neuron(void)
@@ -47,24 +47,4 @@ void Neuron::process(const float* inputs)
   weighted_sum += bias_;
 
   output_ = activationFunction(weighted_sum);
-}
-
-float Neuron::fit(const float* input, const float& expected_output)
-{
-  float error_sum = 0;
-  float error = output_ * (1 - output_) * (expected_output - output_);
-
-  bias_ += gamma_ * error;
-
-  for (int i = 0; i < input_num_; i++)
-  {
-    deltas_[i] *= alpha_;
-    deltas_[i] += gamma_ * error * input[i];
-
-    weights_[i] += deltas_[i];
-
-    error_sum += error * weights_[i];
-  }
-
-  return error_sum;
 }

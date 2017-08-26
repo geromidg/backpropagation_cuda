@@ -18,20 +18,18 @@ class Layer
     float* getLayerOutput(void);  // FIXME: Make return value const
 
     void processNeurons(const float* input);
-    float fitNeurons(const float* input, const float& next_layer_error);
-    float fitNeurons(const float* input, const float* expected_output);
+    float trainLayer(const float* input, const float& next_layer_error);
+    float trainLayer(const float* input, const float* expected_output);
+    
+    Neuron** neurons_;
+    std::mutex mutex_;
+    float shared_error_sum_;
 
   private:
-    void fitNeuronsThreaded(const int& start_block, const int& end_block,
-      const float* input, const float* expected_output);
-
     int neuron_num_;
-    Neuron** neurons_;
 
     int thread_num_;
     std::thread* threads_;
-    std::mutex mutex_;
-    float shared_error_sum_;
 };
 
 #endif  // LAYER_H
