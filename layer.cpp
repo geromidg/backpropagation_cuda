@@ -69,11 +69,11 @@ float Layer::trainLayer(const float* input, const float* expected_output)
   shared_error_sum_ = 0;
 
   for (int i = 0; i < thread_num_; i++)
-    threads_[i] = std::thread(parallelTraining, this,
+    threads_[i] = std::thread(parallelTraining, this, thread_num_ + 1,
       ((i + 1) * chunk), ((i + 2) * chunk), input, expected_output);
 
   // Use master thread in the computations as well
-  parallelTraining(this, 0, chunk, input, expected_output);
+  parallelTraining(this, thread_num_ + 1, 0, chunk, input, expected_output);
 
   for (int i = 0; i < thread_num_; i++)
     threads_[i].join();

@@ -1,12 +1,17 @@
 #include <cuda_runtime.h>
 
+#include <omp.h>
+
 #include "training.cuh"
 
 static void updateNeuronErrorsLaunch(Layer* layer, const int& start_chunk, const int& end_chunk,
   const float* expected_output);
+
 static void updateNeuronDeltasLaunch(Layer* layer, const int& start_chunk, const int& end_chunk,
   const float* input);
-static float sumAllErrors(const int& start_chunk, const int& end_chunk, Neuron** neurons);
+
+static float sumAllErrors(const int& thread_num, const int& start_chunk,
+  const int& end_chunk, Neuron** neurons);
 
 __global__ void updateNeuronErrors(const int neuron_num, const float* expected_output,
   const float* outputs, const float* gammas, float* errors, float* biases)
@@ -131,19 +136,27 @@ void updateNeuronDeltasLaunch(Layer* layer, const int& start_chunk, const int& e
 }
 
 // TODO: Use OMP to sum
-float sumAllErrors(const int& start_chunk, const int& end_chunk, Neuron** neurons)
+float sumAllErrors(const int& thread_num, const int& start_chunk,
+  const int& end_chunk, Neuron** neurons)
 {
+  int i, j;
   int input_num = neurons[0]->input_num_;
   float sum;
 
-  for (int i = start_chunk; i < end_chunk; i++)
-    for (int j = 0; j < input_num; j++)
+  omp_set_num_threads(thread_num);
+
+  #pragma omp parallel for schedule(dynamic, 1) collapse(2) \
+    shared(start_chunk, end_chunk, input_num, neurons) private(i, j) \
+    reduction(+: sum)
+  for (i = start_chunk; i < end_chunk; i++)
+    for (j = 0; j < input_num; j++)
       sum += neurons[i]->error_ * neurons[i]->weights_[j];
 
   return sum;
 }
 
-void parallelTraining(Layer* layer, const int& start_chunk, const int& end_chunk,
+void parallelTraining(Layer* layer, const int& thread_num,
+  const int& start_chunk, const int& end_chunk,
   const float* input, const float* expected_output)
 {
   float error_sum;
@@ -151,9 +164,9 @@ void parallelTraining(Layer* layer, const int& start_chunk, const int& end_chunk
   updateNeuronErrorsLaunch(layer, start_chunk, end_chunk, expected_output);
   updateNeuronDeltasLaunch(layer, start_chunk, end_chunk, input);
 
-  cudaStreamSynchronize(0);  // XXX: cudaDeviceSynchronize() ?
+  cudaStreamSynchronize(0);
 
-  error_sum = sumAllErrors(start_chunk, end_chunk, layer->neurons_);
+  error_sum = sumAllErrors(thread_num, start_chunk, end_chunk, layer->neurons_);
 
   {
     std::lock_guard<std::mutex> lock(layer->mutex_);
